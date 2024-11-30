@@ -1,7 +1,24 @@
 import Link from "next/link";
-
-import { CreatePost } from "~/app/_components/create-post";
 import { api } from "~/trpc/server";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card"
+import { CreatePost } from "./_components/create-post";
+
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "~/components/ui/table"
 
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" });
@@ -48,18 +65,72 @@ export default async function Home() {
   );
 }
 
+// async function CrudShowcase() {
+
+//   const latestPost = await api.post.getPosts();
+
+//   return (
+//     <div className="w-full max-w-xs">
+//       <Card className="bg-purple-500 p-2 border-2 border-purple-700">
+//       <CardContent>
+//       {latestPost ? (
+//         <p className="truncate">Your most recent post: {latestPost[1]?.name}</p>
+//       ) : (
+//         <p>You have no posts yet.</p>
+//       )}
+//       </CardContent>
+//       </Card>
+
+//       <div className="mt-4">
+//         <CreatePost />
+//       </div>
+//     </div>
+//   );
+// }
+
 async function CrudShowcase() {
-  const latestPost = await api.post.getLatest();
+  let latestPosts = null;
+  try {
+    const response = await api.post.getPosts();
+    latestPosts = response; 
+  } catch (error) {
+    console.error('Error fetching posts:', error);
+  }
 
   return (
-    <div className="w-full max-w-xs">
-      {latestPost ? (
-        <p className="truncate">Your most recent post: {latestPost.name}</p>
-      ) : (
-        <p>You have no posts yet.</p>
-      )}
+    <div className="w-full max-w-sm">
+      <Card className="bg-purple-500 p-2 border-2 border-purple-700">
+        <CardContent>
+          {latestPosts && latestPosts.length > 0 ? (
+            <div>
+              <p className="font-semibold mb-2">Your most recent posts:</p>
+              {/* ShadCN Table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-white font-semibold">Post Name</TableHead>
+                    <TableHead className="text-white font-semibold">Created At</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {latestPosts.map((post) => (
+                    <TableRow key={post.id}>
+                      <TableCell>{post.name}</TableCell>
+                      <TableCell>{new Date(post.createdAt).toLocaleString()}</TableCell> {/* Format createdAt */}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <p>You have no posts yet.</p>
+          )}
+        </CardContent>
+      </Card>
 
-      <CreatePost />
+      <div className="mt-4">
+        <CreatePost />
+      </div>
     </div>
   );
 }

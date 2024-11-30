@@ -1,10 +1,16 @@
 import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
+import { AppRouter } from '~/server/api/root'; // Import the type of your app's router
+
 
 export const postRouter = createTRPCRouter({
   hello: publicProcedure
-    .input(z.object({ text: z.string() }))
+    .input(z.object({ 
+      text: z.string()
+      .min(3, { message: "Min. 3 Characters" })
+      //.nonempty({ message: "Required" }),  
+     }))
     .query(({ input }) => {
       return {
         greeting: `Hello ${input.text}`,
@@ -28,5 +34,12 @@ export const postRouter = createTRPCRouter({
     return ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
     });
+  }),
+
+  getPosts: publicProcedure.query(({ ctx }) =>{
+    return ctx.db.post.findMany({
+      orderBy: {createdAt: 'desc'},
+      take:10,
+    })
   }),
 });
